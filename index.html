@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LexControl</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root{
+      --primary:#0A1F44;
+      --accent:#2F6FED;
+      --success:#15803d;
+      --warning:#f59e0b;
+      --danger:#b91c1c;
+      --bg:#f6f8fb;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Arial,Helvetica,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+    .hidden{display:none !important}
+    .login-screen{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      background:linear-gradient(135deg,var(--primary),#102d63);
+    }
+    .login-card{
+      width:100%;
+      max-width:360px;
+      background:var(--card);
+      border-radius:16px;
+      padding:24px;
+      box-shadow:0 12px 40px rgba(0,0,0,.18);
+    }
+    .login-card h1{
+      margin:0 0 8px;
+      color:var(--primary);
+      text-align:center;
+    }
+    .login-card p{
+      margin:0 0 18px;
+      text-align:center;
+      color:var(--muted);
+      font-size:14px;
+    }
+    .field{margin-bottom:14px}
+    .field label{
+      display:block;
+      margin-bottom:6px;
+      font-size:14px;
+      font-weight:700;
+    }
+    .field input,.field select,.field textarea{
+      width:100%;
+      padding:12px;
+      border:1px solid var(--border);
+      border-radius:10px;
+      font-size:14px;
+      background:#fff;
+    }
+    .field textarea{min-height:88px;resize:vertical}
+    .btn{
+      border:none;
+      border-radius:10px;
+      padding:12px 14px;
+      font-weight:700;
+      cursor:pointer;
+    }
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-secondary{background:var(--accent);color:#fff}
+    .btn-danger{background:var(--danger);color:#fff}
+    .btn-success{background:var(--success);color:#fff}
+    .btn-warning{background:var(--warning);color:#2b1900}
+    .btn-block{width:100%}
+    .login-error{
+      margin-top:10px;
+      color:var(--danger);
+      font-size:14px;
+      text-align:center;
+    }
+
+    .app{
+      min-height:100vh;
+    }
+    .sidebar{
+      position:fixed;
+      top:0;left:0;bottom:0;
+      width:230px;
+      background:#fff;
+      border-right:1px solid var(--border);
+      padding:20px 16px;
+      display:none;
+    }
+    .brand{
+      font-size:24px;
+      font-weight:800;
+      color:var(--primary);
+      margin-bottom:8px;
+    }
+    .brand-sub{
+      color:var(--muted);
+      font-size:13px;
+      margin-bottom:18px;
+    }
+    .menu button{
+      width:100%;
+      text-align:left;
+      margin-bottom:8px;
+      background:#fff;
+      color:var(--primary);
+      border:1px solid var(--border);
+      padding:12px 14px;
+      border-radius:10px;
+      font-weight:700;
+      cursor:pointer;
+    }
+    .menu button.active{
+      background:#eef4ff;
+      border-color:#cfe0ff;
+      color:var(--accent);
+    }
+    .main{
+      padding:16px;
+      padding-bottom:88px;
+      max-width:1100px;
+      margin:0 auto;
+    }
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:14px;
+    }
+    .topbar h2{
+      margin:0;
+      color:var(--primary);
+    }
+    .message{
+      background:var(--accent);
+      color:#fff;
+      padding:12px 14px;
+      border-radius:12px;
+      margin-bottom:16px;
+      font-size:14px;
+      font-weight:700;
+    }
+    .cards{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:12px;
+      margin-bottom:16px;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:16px;
+    }
+    .card-title{
+      font-size:13px;
+      color:var(--muted);
+      margin-bottom:8px;
+      font-weight:700;
+    }
+    .card-value{
+      font-size:26px;
+      font-weight:800;
+      color:var(--primary);
+    }
+    .quick-actions{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:10px;
+      margin-bottom:16px;
+    }
+    .toolbar{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:12px;
+    }
+    .panel{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:14px;
+      margin-bottom:14px;
+    }
+    .panel h3{
+      margin:0 0 12px;
+      color:var(--primary);
+    }
+    .list{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .item{
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px;
+      background:#fff;
+    }
+    .item-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .item-title{
+      font-weight:800;
+      color:var(--primary);
+      margin-bottom:4px;
+    }
+    .item-sub{
+      color:var(--muted);
+      font-size:14px;
+      line-height:1.4;
+    }
+    .item-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .item-actions .btn{
+      padding:8px 10px;
+      font-size:13px;
+    }
+    .badge{
+      display:inline-block;
+      padding:5px 9px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:800;
+    }
+    .badge-active{background:#dcfce7;color:#166534}
+    .badge-final{background:#fee2e2;color:#991b1b}
+    .badge-pendente{background:#fef3c7;color:#92400e}
+    .badge-pago{background:#dcfce7;color:#166534}
+    .badge-urgente{background:#fee2e2;color:#991b1b}
+    .badge-atencao{background:#fde68a;color:#92400e}
+    .badge-ok{background:#dbeafe;color:#1d4ed8}
+    .section{display:none}
+    .section.active{display:block}
+    .empty{
+      color:var(--muted);
+      text-align:center;
+      padding:18px;
+      border:1px dashed var(--border);
+      border-radius:12px;
+      background:#fff;
+    }
+    .bottom-nav{
+      position:fixed;
+      left:0;right:0;bottom:0;
+      background:#fff;
+      border-top:1px solid var(--border);
+      display:flex;
+      z-index:50;
+    }
+    .bottom-nav button{
+      flex:1;
+      padding:12px 8px;
+      border:none;
+      background:#fff;
+      color:var(--primary);
+      font-weight:800;
+      cursor:pointer;
+    }
+    .bottom-nav button.active{
+      color:var(--accent);
+      background:#f5f9ff;
+    }
+
+    @media (min-width: 900px){
+      .sidebar{display:block}
+      .main{
+        margin-left:250px;
+        padding:24px;
+        padding-bottom:24px;
+      }
+      .bottom-nav{display:none}
+      .cards{grid-template-columns:repeat(4,1fr)}
+      .quick-actions{grid-template-columns:repeat(4,1fr)}
+    }
+  </style>
+</head>
+<body>
+  <div id="loginScreen" class="login-screen">
+    <div class="login-card">
+      <h1>LexControl</h1>
+      <p>Acesso privado para advogados</p>
+
+      <div class="field">
+        <label for="loginEmail">E-mail</label>
+        <input id="loginEmail" type="email" placeholder="Seu e-mail" />
+      </div>
+
+      <div class="field">
+        <label for="loginPassword">Senha</label>
+        <input id="loginPassword" type="password" placeholder="Sua senha" />
+      </div>
+
+      <button class="btn btn-primary btn-block" onclick="login()">Entrar</button>
+      <div id="loginError" class="login-error"></div>
+    </div>
+  </div>
+
+  <div id="app" class="app hidden">
+    <aside class="sidebar">
+      <div class="brand">LexControl</div>
+      <div class="brand-sub">Gestão jurídica simples</div>
+      <div class="menu">
+        <button class="menu-btn active" data-section="dashboard" onclick="showSection('dashboard')">🏠 Home</button>
+        <button class="menu-btn" data-section="clients" onclick="showSection('clients')">👤 Clientes</button>
+        <button class="menu-btn" data-section="processes" onclick="showSection('processes')">⚖️ Processos</button>
+        <button class="menu-btn" data-section="deadlines" onclick="showSection('deadlines')">⏰ Prazos</button>
+        <button class="menu-btn" data-section="payments" onclick="showSection('payments')">💰 Financeiro</button>
+        <button class="menu-btn" onclick="logout()">🚪 Sair</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <h2 id="pageTitle">Dashboard</h2>
+        <button class="btn btn-danger" onclick="logout()">Sair</button>
+      </div>
+
+      <div class="message">Um prazo perdido pode custar um processo. Organize tudo em um só lugar.</div>
+
+      <section id="dashboard" class="section active">
+        <div class="cards">
+          <div class="card">
+            <div class="card-title">Total de clientes</div>
+            <div class="card-value" id="dashClients">0</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Processos ativos</div>
+            <div class="card-value" id="dashProcesses">0</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Prazos em 7 dias</div>
+            <div class="card-value" id="dashDeadlines">0</div>
+          </div>
+          <div class="card">
+            <div class="card-title">Valores pendentes</div>
+            <div class="card-value" id="dashPayments">R$ 0,00</div>
+          </div>
+        </div>
+
+        <div class="quick-actions">
+          <button class="btn btn-primary" onclick="showSection('clients');togglePanel('clientPanel', true)">+ Cliente</button>
+          <button class="btn btn-primary" onclick="showSection('processes');togglePanel('processPanel', true)">+ Processo</button>
+          <button class="btn btn-primary" onclick="showSection('deadlines');togglePanel('deadlinePanel', true)">+ Prazo</button>
+          <button class="btn btn-primary" onclick="showSection('payments');togglePanel('paymentPanel', true)">+ Pagamento</button>
+        </div>
+
+        <div class="panel">
+          <h3>Resumo rápido</h3>
+          <div id="dashboardAlert" class="empty">Sem alertas no momento.</div>
+        </div>
+      </section>
+
+      <section id="clients" class="section">
+        <div id="clientPanel" class="panel hidden">
+          <h3 id="clientPanelTitle">Novo cliente</h3>
+          <div class="field"><label>Nome</label><input id="clientNome" /></div>
+          <div class="field"><label>Telefone</label><input id="clientTelefone" /></div>
+          <div class="field"><label>E-mail</label><input id="clientEmail" type="email" /></div>
+          <div class="field"><label>Observações</label><textarea id="clientObs"></textarea></div>
+          <div class="toolbar">
+            <button class="btn btn-secondary" onclick="saveClient()">Salvar</button>
+            <button class="btn" onclick="togglePanel('clientPanel', false)">Cancelar</button>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="resetClientForm();togglePanel('clientPanel', true)">+ Adicionar cliente</button>
+        </div>
+
+        <div id="clientsList" class="list"></div>
+      </section>
+
+      <section id="processes" class="section">
+        <div id="processPanel" class="panel hidden">
+          <h3 id="processPanelTitle">Novo processo</h3>
+          <div class="field">
+            <label>Cliente vinculado</label>
+            <select id="processClient"></select>
+          </div>
+          <div class="field"><label>Número do processo</label><input id="processNumero" /></div>
+          <div class="field"><label>Tipo</label><input id="processTipo" placeholder="Civil, Trabalhista..." /></div>
+          <div class="field">
+            <label>Status</label>
+            <select id="processStatus">
+              <option value="ativo">Ativo</option>
+              <option value="finalizado">Finalizado</option>
+            </select>
+          </div>
+          <div class="field"><label>Observações</label><textarea id="processObs"></textarea></div>
+          <div class="toolbar">
+            <button class="btn btn-secondary" onclick="saveProcess()">Salvar</button>
+            <button class="btn" onclick="togglePanel('processPanel', false)">Cancelar</button>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="resetProcessForm();togglePanel('processPanel', true)">+ Adicionar processo</button>
+          <button class="btn" onclick="setProcessFilter('all')">Todos</button>
+          <button class="btn btn-success" onclick="setProcessFilter('ativo')">Ativos</button>
+          <button class="btn btn-danger" onclick="setProcessFilter('finalizado')">Finalizados</button>
+        </div>
+
+        <div id="processesList" class="list"></div>
+      </section>
+
+      <section id="deadlines" class="section">
+        <div id="deadlinePanel" class="panel hidden">
+          <h3 id="deadlinePanelTitle">Novo prazo</h3>
+          <div class="field">
+            <label>Processo vinculado</label>
+            <select id="deadlineProcess"></select>
+          </div>
+          <div class="field"><label>Descrição</label><input id="deadlineDescricao" /></div>
+          <div class="field"><label>Data</label><input id="deadlineData" type="date" /></div>
+          <div class="toolbar">
+            <button class="btn btn-secondary" onclick="saveDeadline()">Salvar</button>
+            <button class="btn" onclick="togglePanel('deadlinePanel', false)">Cancelar</button>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="resetDeadlineForm();togglePanel('deadlinePanel', true)">+ Adicionar prazo</button>
+        </div>
+
+        <div id="deadlinesList" class="list"></div>
+      </section>
+
+      <section id="payments" class="section">
+        <div id="paymentPanel" class="panel hidden">
+          <h3 id="paymentPanelTitle">Novo pagamento</h3>
+          <div class="field">
+            <label>Cliente</label>
+            <select id="paymentClient"></select>
+          </div>
+          <div class="field"><label>Valor</label><input id="paymentValor" type="number" step="0.01" min="0" /></div>
+          <div class="field">
+            <label>Status</label>
+            <select id="paymentStatus">
+              <option value="pendente">Pendente</option>
+              <option value="pago">Pago</option>
+            </select>
+          </div>
+          <div class="toolbar">
+            <button class="btn btn-secondary" onclick="savePayment()">Salvar</button>
+            <button class="btn" onclick="togglePanel('paymentPanel', false)">Cancelar</button>
+          </div>
+        </div>
+
+        <div class="toolbar">
+          <button class="btn btn-primary" onclick="resetPaymentForm();togglePanel('paymentPanel', true)">+ Adicionar pagamento</button>
+          <button class="btn" onclick="setPaymentFilter('all')">Todos</button>
+          <button class="btn btn-warning" onclick="setPaymentFilter('pendente')">Pendentes</button>
+          <button class="btn btn-success" onclick="setPaymentFilter('pago')">Pagos</button>
+        </div>
+
+        <div id="paymentsList" class="list"></div>
+      </section>
+    </main>
+
+    <nav class="bottom-nav">
+      <button class="bottom-btn active" data-section="dashboard" onclick="showSection('dashboard')">🏠</button>
+      <button class="bottom-btn" data-section="clients" onclick="showSection('clients')">👤</button>
+      <button class="bottom-btn" data-section="processes" onclick="showSection('processes')">⚖️</button>
+      <button class="bottom-btn" data-section="deadlines" onclick="showSection('deadlines')">⏰</button>
+      <button class="bottom-btn" data-section="payments" onclick="showSection('payments')">💰</button>
+    </nav>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://gkwsagqmipsmqjtjqffe.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdrd3NhZ3FtaXBzbXFqdGpxZmZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3ODAzODksImV4cCI6MjA5MDM1NjM4OX0.2saPkwADuOOxnMBhxTcu3adBpggTJ7cdQs83F18qXPU";
+
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentUser = null;
+    let editingClientId = null;
+    let editingProcessId = null;
+    let editingDeadlineId = null;
+    let editingPaymentId = null;
+    let processFilter = "all";
+    let paymentFilter = "all";
+
+    function moneyBR(value) {
+      return Number(value || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function togglePanel(id, show) {
+      const el = document.getElementById(id);
+      if (show) el.classList.remove("hidden");
+      else el.classList.add("hidden");
+    }
+
+    function clearLoginError() {
+      document.getElementById("loginError").textContent = "";
+    }
+
+    async function login() {
+      clearLoginError();
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value;
+
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        document.getElementById("loginError").textContent = "E-mail ou senha inválidos.";
+        return;
+      }
+
+      currentUser = data.user;
+      document.getElementById("loginScreen").classList.add("hidden");
+      document.getElementById("app").classList.remove("hidden");
+      await refreshAll();
+    }
+
+    async function logout() {
+      await sb.auth.signOut();
+      currentUser = null;
+      document.getElementById("app").classList.add("hidden");
+      document.getElementById("loginScreen").classList.remove("hidden");
+    }
+
+    async function bootstrapSession() {
+      const { data } = await sb.auth.getSession();
+      currentUser = data.session?.user || null;
+
+      if (currentUser) {
+        document.getElementById("loginScreen").classList.add("hidden");
+        document.getElementById("app").classList.remove("hidden");
+        await refreshAll();
+      }
+    }
+
+    function showSection(section) {
+      document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+      document.getElementById(section).classList.add("active");
+
+      document.querySelectorAll(".menu-btn[data-section], .bottom-btn[data-section]").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.section === section);
+      });
+
+      const titles = {
+        dashboard: "Dashboard",
+        clients: "Clientes",
+        processes: "Processos",
+        deadlines: "Prazos",
+        payments: "Financeiro"
+      };
+      document.getElementById("pageTitle").textContent = titles[section];
+    }
+
+    async function refreshAll() {
+      await Promise.all([
+        loadDashboard(),
+        loadClients(),
+        loadProcesses(),
+        loadDeadlines(),
+        loadPayments(),
+        populateClientSelects(),
+        populateProcessSelect()
+      ]);
+    }
+
+    // DASHBOARD
+    async function loadDashboard() {
+      const [clientsRes, processesRes, deadlinesRes, paymentsRes] = await Promise.all([
+        sb.from("clients").select("id", { count: "exact" }),
+        sb.from("processes").select("id,status"),
+        sb.from("deadlines").select("id,data,descricao"),
+        sb.from("payments").select("valor,status")
+      ]);
+
+      const clientsCount = clientsRes.data?.length || 0;
+      const activeProcesses = (processesRes.data || []).filter(p => p.status === "ativo").length;
+
+      const now = new Date();
+      const future7 = new Date();
+      future7.setDate(now.getDate() + 7);
+
+      const upcoming = (deadlinesRes.data || []).filter(d => {
+        if (!d.data) return false;
+        const dt = new Date(d.data + "T00:00:00");
+        return dt >= new Date(now.toDateString()) && dt <= future7;
+      });
+
+      const pendingTotal = (paymentsRes.data || [])
+        .filter(p => p.status === "pendente")
+        .reduce((acc, p) => acc + Number(p.valor || 0), 0);
+
+      document.getElementById("dashClients").textContent = clientsCount;
+      document.getElementById("dashProcesses").textContent = activeProcesses;
+      document.getElementById("dashDeadlines").textContent = upcoming.length;
+      document.getElementById("dashPayments").textContent = moneyBR(pendingTotal);
+
+      const alertBox = document.getElementById("dashboardAlert");
+      if (upcoming.length === 0) {
+        alertBox.className = "empty";
+        alertBox.textContent = "Sem alertas no momento.";
+      } else {
+        alertBox.className = "panel";
+        alertBox.innerHTML = upcoming
+          .map(d => `<div><strong>${escapeHtml(d.descricao)}</strong> — ${new Date(d.data + "T00:00:00").toLocaleDateString("pt-BR")}</div>`)
+          .join("");
+      }
+    }
+
+    // CLIENTS
+    function resetClientForm() {
+      editingClientId = null;
+      document.getElementById("clientPanelTitle").textContent = "Novo cliente";
+      document.getElementById("clientNome").value = "";
+      document.getElementById("clientTelefone").value = "";
+      document.getElementById("clientEmail").value = "";
+      document.getElementById("clientObs").value = "";
+    }
+
+    async function saveClient() {
+      const nome = document.getElementById("clientNome").value.trim();
+      const telefone = document.getElementById("clientTelefone").value.trim();
+      const email = document.getElementById("clientEmail").value.trim();
+      const observacoes = document.getElementById("clientObs").value.trim();
+
+      if (!nome) {
+        alert("Nome é obrigatório.");
+        return;
+      }
+
+      const payload = { user_id: currentUser.id, nome, telefone, email, observacoes };
+
+      let res;
+      if (editingClientId) {
+        res = await sb.from("clients").update(payload).eq("id", editingClientId);
+      } else {
+        res = await sb.from("clients").insert(payload);
+      }
+
+      if (res.error) {
+        alert("Erro ao salvar cliente.");
+        return;
+      }
+
+      resetClientForm();
+      togglePanel("clientPanel", false);
+      await refreshAll();
+      showSection("clients");
+    }
+
+    async function loadClients() {
+      const { data, error } = await sb.from("clients").select("*").order("created_at", { ascending: false });
+      const box = document.getElementById("clientsList");
+
+      if (error) {
+        box.innerHTML = `<div class="empty">Erro ao carregar clientes.</div>`;
+        return;
+      }
+
+      if (!data || data.length === 0) {
+        box.innerHTML = `<div class="empty">Nenhum cliente cadastrado.</div>`;
+        return;
+      }
+
+      box.innerHTML = data.map(c => `
+        <div class="item">
+          <div class="item-top">
+            <div>
+              <div class="item-title">${escapeHtml(c.nome)}</div>
+              <div class="item-sub">
+                ${c.telefone ? "📱 " + escapeHtml(c.telefone) + "<br>" : ""}
+                ${c.email ? "✉️ " + escapeHtml(c.email) + "<br>" : ""}
+                ${c.observacoes ? "Obs: " + escapeHtml(c.observacoes) : ""}
+              </div>
+            </div>
+          </div>
+          <div class="item-actions">
+            <button class="btn btn-secondary" onclick="editClient('${c.id}')">Editar</button>
+            <button class="btn btn-danger" onclick="deleteClient('${c.id}')">Excluir</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    async function editClient(id) {
+      const { data, error } = await sb.from("clients").select("*").eq("id", id).single();
+      if (error || !data) return alert("Erro ao carregar cliente.");
+
+      editingClientId = id;
+      document.getElementById("clientPanelTitle").textContent = "Editar cliente";
+      document.getElementById("clientNome").value = data.nome || "";
+      document.getElementById("clientTelefone").value = data.telefone || "";
+      document.getElementById("clientEmail").value = data.email || "";
+      document.getElementById("clientObs").value = data.observacoes || "";
+      togglePanel("clientPanel", true);
+      showSection("clients");
+    }
+
+    async function deleteClient(id) {
+      if (!confirm("Excluir este cliente?")) return;
+      const { error } = await sb.from("clients").delete().eq("id", id);
+      if (error) return alert("Erro ao excluir cliente.");
+      await refreshAll();
+    }
+
+    // PROCESS
+    async function populateClientSelects() {
+      const { data } = await sb.from("clients").select("id,nome").order("nome", { ascending: true });
+      const clients = data || [];
+
+      const processClient = document.getElementById("processClient");
+      const paymentClient = document.getElementById("paymentClient");
+
+      processClient.innerHTML = clients.length
+        ? clients.map(c => `<option value="${c.id}">${escapeHtml(c.nome)}</option>`).join("")
+        : `<option value="">Nenhum cliente cadastrado</option>`;
+
+      paymentClient.innerHTML = clients.length
+        ? clients.map(c => `<option value="${c.id}">${escapeHtml(c.nome)}</option>`).join("")
+        : `<option value="">Nenhum cliente cadastrado</option>`;
+    }
+
+    function resetProcessForm() {
+      editingProcessId = null;
+      document.getElementById("processPanelTitle").textContent = "Novo processo";
+      document.getElementById("processNumero").value = "";
+      document.getElementById("processTipo").value = "";
+      document.getElementById("processStatus").value = "ativo";
+      document.getElementById("processObs").value = "";
+    }
+
+    function setProcessFilter(filter) {
+      processFilter = filter;
+      loadProcesses();
+    }
+
+    async function saveProcess() {
+      const client_id = document.getElementById("processClient").value;
+      const numero = document.getElementById("processNumero").value.trim();
+      const tipo = document.getElementById("processTipo").value.trim();
+      const status = document.getElementById("processStatus").value;
+      const observacoes = document.getElementById("processObs").value.trim();
+
+      if (!client_id || !numero) {
+        alert("Cliente e número do processo são obrigatórios.");
+        return;
+      }
+
+      const payload = { user_id: currentUser.id, client_id, numero, tipo, status, observacoes };
+
+      let res;
+      if (editingProcessId) {
+        res = await sb.from("processes").update(payload).eq("id", editingProcessId);
+      } else {
+        res = await sb.from("processes").insert(payload);
+      }
+
+      if (res.error) return alert("Erro ao salvar processo.");
+
+      resetProcessForm();
+      togglePanel("processPanel", false);
+      await refreshAll();
+      showSection("processes");
+    }
+
+    async function loadProcesses() {
+      const { data, error } = await sb
+        .from("processes")
+        .select("*, clients(nome)")
+        .order("created_at", { ascending: false });
+
+      const box = document.getElementById("processesList");
+
+      if (error) {
+        box.innerHTML = `<div class="empty">Erro ao carregar processos.</div>`;
+        return;
+      }
+
+      let rows = data || [];
+      if (processFilter !== "all") rows = rows.filter(r => r.status === processFilter);
+
+      if (rows.length === 0) {
+        box.innerHTML = `<div class="empty">Nenhum processo encontrado.</div>`;
+        return;
+      }
+
+      box.innerHTML = rows.map(p => `
+        <div class="item">
+          <div class="item-top">
+            <div>
+              <div class="item-title">${escapeHtml(p.numero)}</div>
+              <div class="item-sub">
+                Cliente: ${escapeHtml(p.clients?.nome || "-")}<br>
+                Tipo: ${escapeHtml(p.tipo || "-")}<br>
+                ${p.observacoes ? "Obs: " + escapeHtml(p.observacoes) : ""}
+              </div>
+            </div>
+            <div>
+              <span class="badge ${p.status === "ativo" ? "badge-active" : "badge-final"}">${escapeHtml(p.status)}</span>
+            </div>
+          </div>
+          <div class="item-actions">
+            <button class="btn btn-secondary" onclick="editProcess('${p.id}')">Editar</button>
+            <button class="btn btn-danger" onclick="deleteProcess('${p.id}')">Excluir</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    async function editProcess(id) {
+      const { data, error } = await sb.from("processes").select("*").eq("id", id).single();
+      if (error || !data) return alert("Erro ao carregar processo.");
+
+      editingProcessId = id;
+      document.getElementById("processPanelTitle").textContent = "Editar processo";
+      document.getElementById("processClient").value = data.client_id || "";
+      document.getElementById("processNumero").value = data.numero || "";
+      document.getElementById("processTipo").value = data.tipo || "";
+      document.getElementById("processStatus").value = data.status || "ativo";
+      document.getElementById("processObs").value = data.observacoes || "";
+      togglePanel("processPanel", true);
+      showSection("processes");
+    }
+
+    async function deleteProcess(id) {
+      if (!confirm("Excluir este processo?")) return;
+      const { error } = await sb.from("processes").delete().eq("id", id);
+      if (error) return alert("Erro ao excluir processo.");
+      await refreshAll();
+    }
+
+    // DEADLINES
+    async function populateProcessSelect() {
+      const { data } = await sb.from("processes").select("id,numero").order("numero", { ascending: true });
+      const rows = data || [];
+      const sel = document.getElementById("deadlineProcess");
+      sel.innerHTML = rows.length
+        ? rows.map(p => `<option value="${p.id}">${escapeHtml(p.numero)}</option>`).join("")
+        : `<option value="">Nenhum processo cadastrado</option>`;
+    }
+
+    function resetDeadlineForm() {
+      editingDeadlineId = null;
+      document.getElementById("deadlinePanelTitle").textContent = "Novo prazo";
+      document.getElementById("deadlineDescricao").value = "";
+      document.getElementById("deadlineData").value = "";
+    }
+
+    async function saveDeadline() {
+      const process_id = document.getElementById("deadlineProcess").value;
+      const descricao = document.getElementById("deadlineDescricao").value.trim();
+      const data = document.getElementById("deadlineData").value;
+
+      if (!process_id || !descricao || !data) {
+        alert("Preencha processo, descrição e data.");
+        return;
+      }
+
+      const payload = { user_id: currentUser.id, process_id, descricao, data };
+
+      let res;
+      if (editingDeadlineId) {
+        res = await sb.from("deadlines").update(payload).eq("id", editingDeadlineId);
+      } else {
+        res = await sb.from("deadlines").insert(payload);
+      }
+
+      if (res.error) return alert("Erro ao salvar prazo.");
+
+      resetDeadlineForm();
+      togglePanel("deadlinePanel", false);
+      await refreshAll();
+      showSection("deadlines");
+    }
+
+    function deadlineBadge(dateStr) {
+      const now = new Date();
+      const target = new Date(dateStr + "T00:00:00");
+      const diff = Math.ceil((target - new Date(now.toDateString())) / (1000 * 60 * 60 * 24));
+
+      if (diff < 0) return `<span class="badge badge-urgente">Atrasado</span>`;
+      if (diff <= 3) return `<span class="badge badge-urgente">Urgente</span>`;
+      if (diff <= 7) return `<span class="badge badge-atencao">Atenção</span>`;
+      return `<span class="badge badge-ok">No prazo</span>`;
+    }
+
+    async function loadDeadlines() {
+      const { data, error } = await sb
+        .from("deadlines")
+        .select("*, processes(numero)")
+        .order("data", { ascending: true });
+
+      const box = document.getElementById("deadlinesList");
+
+      if (error) {
+        box.innerHTML = `<div class="empty">Erro ao carregar prazos.</div>`;
+        return;
+      }
+
+      const rows = data || [];
+      if (rows.length === 0) {
+        box.innerHTML = `<div class="empty">Nenhum prazo cadastrado.</div>`;
+        return;
+      }
+
+      box.innerHTML = rows.map(d => `
+        <div class="item">
+          <div class="item-top">
+            <div>
+              <div class="item-title">${escapeHtml(d.descricao)}</div>
+              <div class="item-sub">
+                Processo: ${escapeHtml(d.processes?.numero || "-")}<br>
+                Data: ${new Date(d.data + "T00:00:00").toLocaleDateString("pt-BR")}
+              </div>
+            </div>
+            <div>${deadlineBadge(d.data)}</div>
+          </div>
+          <div class="item-actions">
+            <button class="btn btn-secondary" onclick="editDeadline('${d.id}')">Editar</button>
+            <button class="btn btn-danger" onclick="deleteDeadline('${d.id}')">Excluir</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    async function editDeadline(id) {
+      const { data, error } = await sb.from("deadlines").select("*").eq("id", id).single();
+      if (error || !data) return alert("Erro ao carregar prazo.");
+
+      editingDeadlineId = id;
+      document.getElementById("deadlinePanelTitle").textContent = "Editar prazo";
+      document.getElementById("deadlineProcess").value = data.process_id || "";
+      document.getElementById("deadlineDescricao").value = data.descricao || "";
+      document.getElementById("deadlineData").value = data.data || "";
+      togglePanel("deadlinePanel", true);
+      showSection("deadlines");
+    }
+
+    async function deleteDeadline(id) {
+      if (!confirm("Excluir este prazo?")) return;
+      const { error } = await sb.from("deadlines").delete().eq("id", id);
+      if (error) return alert("Erro ao excluir prazo.");
+      await refreshAll();
+    }
+
+    // PAYMENTS
+    function resetPaymentForm() {
+      editingPaymentId = null;
+      document.getElementById("paymentPanelTitle").textContent = "Novo pagamento";
+      document.getElementById("paymentValor").value = "";
+      document.getElementById("paymentStatus").value = "pendente";
+    }
+
+    function setPaymentFilter(filter) {
+      paymentFilter = filter;
+      loadPayments();
+    }
+
+    async function savePayment() {
+      const client_id = document.getElementById("paymentClient").value;
+      const valor = document.getElementById("paymentValor").value;
+      const status = document.getElementById("paymentStatus").value;
+
+      if (!client_id || !valor) {
+        alert("Cliente e valor são obrigatórios.");
+        return;
+      }
+
+      const payload = { user_id: currentUser.id, client_id, valor, status };
+
+      let res;
+      if (editingPaymentId) {
+        res = await sb.from("payments").update(payload).eq("id", editingPaymentId);
+      } else {
+        res = await sb.from("payments").insert(payload);
+      }
+
+      if (res.error) return alert("Erro ao salvar pagamento.");
+
+      resetPaymentForm();
+      togglePanel("paymentPanel", false);
+      await refreshAll();
+      showSection("payments");
+    }
+
+    async function loadPayments() {
+      const { data, error } = await sb
+        .from("payments")
+        .select("*, clients(nome)")
+        .order("created_at", { ascending: false });
+
+      const box = document.getElementById("paymentsList");
+
+      if (error) {
+        box.innerHTML = `<div class="empty">Erro ao carregar financeiro.</div>`;
+        return;
+      }
+
+      let rows = data || [];
+      if (paymentFilter !== "all") rows = rows.filter(r => r.status === paymentFilter);
+
+      if (rows.length === 0) {
+        box.innerHTML = `<div class="empty">Nenhum pagamento encontrado.</div>`;
+        return;
+      }
+
+      box.innerHTML = rows.map(p => `
+        <div class="item">
+          <div class="item-top">
+            <div>
+              <div class="item-title">${moneyBR(p.valor)}</div>
+              <div class="item-sub">Cliente: ${escapeHtml(p.clients?.nome || "-")}</div>
+            </div>
+            <div>
+              <span class="badge ${p.status === "pago" ? "badge-pago" : "badge-pendente"}">${escapeHtml(p.status)}</span>
+            </div>
+          </div>
+          <div class="item-actions">
+            <button class="btn btn-secondary" onclick="editPayment('${p.id}')">Editar</button>
+            <button class="btn btn-warning" onclick="sendCharge('${escapeHtml(p.clients?.nome || "Cliente")}')">Enviar cobrança</button>
+            <button class="btn btn-danger" onclick="deletePayment('${p.id}')">Excluir</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    async function editPayment(id) {
+      const { data, error } = await sb.from("payments").select("*").eq("id", id).single();
+      if (error || !data) return alert("Erro ao carregar pagamento.");
+
+      editingPaymentId = id;
+      document.getElementById("paymentPanelTitle").textContent = "Editar pagamento";
+      document.getElementById("paymentClient").value = data.client_id || "";
+      document.getElementById("paymentValor").value = data.valor || "";
+      document.getElementById("paymentStatus").value = data.status || "pendente";
+      togglePanel("paymentPanel", true);
+      showSection("payments");
+    }
+
+    async function deletePayment(id) {
+      if (!confirm("Excluir este pagamento?")) return;
+      const { error } = await sb.from("payments").delete().eq("id", id);
+      if (error) return alert("Erro ao excluir pagamento.");
+      await refreshAll();
+    }
+
+    function sendCharge(clientName) {
+      alert(`Cobrança simulada enviada para ${clientName}.`);
+    }
+
+    bootstrapSession();
+  </script>
+</body>
+</html>
