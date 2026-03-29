@@ -1,117 +1,115 @@
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
-
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = supabase.createClient(
+  "SUA_URL",
+  "SUA_ANON_KEY"
+);
 
 let currentUser = null;
 let profileData = null;
 
-let editingClientId = null;
-let editingProcessId = null;
-let editingDeadlineId = null;
-let editingPaymentId = null;
-
-let processFilter = "all";
-let paymentFilter = "all";
-
-const byId = (id) => document.getElementById(id);
-
-function moneyBR(value) {
-  return Number(value || 0).toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-}
-
-function escapeHtml(str) {
-  return String(str || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
-function togglePanel(id, show) {
-  const el = byId(id);
-  if (!el) return;
-  el.classList.toggle("hidden", !show);
-}
-
-function setLoginError(message = "") {
-  const el = byId("loginError");
-  if (el) el.textContent = message;
-}
-
-async function login() {
-  setLoginError("");
-
-  const email =
-    byId("loginEmail")?.value?.trim() || byId("email")?.value?.trim() || "";
-  const password =
-    byId("loginPassword")?.value || byId("password")?.value || "";
+/* LOGIN */
+document.getElementById("loginBtn").onclick = async () => {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
 
-  if (error) {
-    setLoginError("E-mail ou senha inválidos.");
-    return;
-  }
+  if (error) return alert("Erro login");
 
   currentUser = data.user;
 
-  byId("loginScreen")?.classList.add("hidden");
-  byId("app")?.classList.remove("hidden");
+  document.getElementById("loginScreen").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
 
-  await refreshAll();
+  await init();
+};
+
+/* INIT */
+async function init() {
+  await loadProfile();
+  await loadDashboard();
+  await loadClients();
 }
 
-async function logout() {
-  await sb.auth.signOut();
-  currentUser = null;
-  profileData = null;
+/* PROFILE */
+async function loadProfile() {
+  const { data } = await sb
+    .from("profiles")
+    .select("*")
+    .eq("id", currentUser.id)
+    .maybeSingle();
 
-  byId("app")?.classList.add("hidden");
-  byId("loginScreen")?.classList.remove("hidden");
+  profileData = data;
+
+  const name = data?.full_name || currentUser.email;
+  const oab = data?.oab ? "OAB " + data.oab : "Sem OAB";
+
+  document.getElementById("profileNameChip").innerText = name;
+  document.getElementById("profileOabChip").innerText = oab;
+
+  document.getElementById("profileDashboardName").innerText = name;
+  document.getElementById("profileDashboardOab").innerText = oab;
 }
 
-async function bootstrapSession() {
-  const { data } = await sb.auth.getSession();
-  currentUser = data.session?.user || null;
+/* DASHBOARD */
+async function loadDashboard() {
+  const { data } = await sb
+    .from("clients")
+    .select("*")
+    .eq("user_id", currentUser.id);
 
-  if (currentUser) {
-    byId("loginScreen")?.classList.add("hidden");
-    byId("app")?.classList.remove("hidden");
-    await refreshAll();
-  }
+  document.getElementById("dashClients").innerText = data?.length || 0;
 }
 
-function showSection(section) {
-  document.querySelectorAll(".section").forEach((s) => s.classList.remove("active"));
-  byId(section)?.classList.add("active");
+/* CLIENTES */
+async function loadClients() {
+  const { data } = await sb
+    .from("clients")
+    .select("*")
+    .eq("user_id", currentUser.id);
 
-  document
-    .querySelectorAll(".menu-btn[data-section], .bottom-btn[data-section]")
-    .forEach((btn) => {
-      btn.classList.toggle("active", btn.dataset.section === section);
-    });
+  document.getElementById("clientsList").innerHTML =
+    data?.map(c => `<div class="card">${c.nome}</div>`).join("") || "";
+}
 
-  const titles = {
-    dashboard: ["Dashboard", "Visão rápida do seu controle jurídico."],
-    profile: ["Perfil", "Seus dados profissionais."],
-    clients: ["Clientes", "Cadastro e gestão dos seus clientes."],
-    processes: ["Processos", "Controle de processos por cliente."],
-    deadlines: ["Prazos", "Acompanhe tudo que vence em breve."],
-    payments: ["Financeiro", "Honorários, pendências e recebimentos."],
+/* CONFIG MODAL */
+document.getElementById("openConfigBtn").onclick = () => {
+  document.getElementById("configModal").classList.remove("hidden");
+
+  document.getElementById("configName").value = profileData?.full_name || "";
+  document.getElementById("configOab").value = profileData?.oab || "";
+};
+
+document.getElementById("closeConfigBtn").onclick = () => {
+  document.getElementById("configModal").classList.add("hidden");
+};
+
+document.getElementById("saveConfigBtn").onclick = async () => {
+  const full_name = document.getElementById("configName").value;
+  const oab = document.getElementById("configOab").value;
+
+  const { error } = await sb.from("profiles").upsert({
+    id: currentUser.id,
+    full_name,
+    oab
+  });
+
+  if (error) return alert("Erro");
+
+  document.getElementById("configModal").classList.add("hidden");
+
+  await loadProfile();
+};
+
+/* NAV */
+document.querySelectorAll(".menu-btn").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
+    document.getElementById(btn.dataset.section).classList.remove("hidden");
   };
+});
 
-  if (byId("pageTitle")) byId("pageTitle").textContent = titles[section]?.[0] || "";
-  if (byId("pageSubtitle")) byId("pageSubtitle").textContent = titles[section]?.[1] || "";
-}
-
-async function refreshAll() {
-  await Promise.all([
-    loadProfile(),
-    loadDashboard(),
-    loadClients(),
-    loadProcesses(),
-    load
+/* LOGOUT */
+document.getElementById("logoutBtn").onclick = async () => {
+  await sb.auth.signOut();
+  location.reload();
+};
