@@ -1,164 +1,90 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LexControl</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LexControl</title>
 
-  <link rel="stylesheet" href="styles.css" />
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <script type="module" src="config.js"></script>
-
-  <script type="module" src="app.js" defer></script>
+<style>
+body{font-family:Arial;background:#0b1020;color:white;margin:0}
+.hidden{display:none}
+.sidebar{width:200px;position:fixed;height:100%;background:#111;padding:20px}
+.main{margin-left:220px;padding:20px}
+.menu-btn{display:block;margin:10px 0}
+.card{background:#1f2937;padding:15px;border-radius:10px;margin:10px 0}
+.topbar{display:flex;justify-content:space-between;align-items:center}
+</style>
 
 </head>
-
 <body>
 
 <!-- LOGIN -->
-
-<div id="loginScreen" class="login-screen">
-  <div class="login-box">
-    <h1>LexControl</h1>
-    <input id="email" placeholder="Email" />
-    <input id="password" type="password" placeholder="Senha" />
-    <button id="loginBtn">Entrar</button>
-  </div>
+<div id="loginScreen">
+  <input id="email" placeholder="Email">
+  <input id="password" type="password" placeholder="Senha">
+  <button id="loginBtn">Entrar</button>
 </div>
 
 <!-- APP -->
+<div id="app" class="hidden">
 
-<div id="app" class="app hidden">
+  <div class="sidebar">
+    <h2>LexControl</h2>
 
-  <!-- SIDEBAR -->
+    <div id="profileNameChip">...</div>
+    <div id="profileOabChip">...</div>
 
-  <aside class="sidebar">
-    <div class="logo">LexControl</div>
+    <button class="menu-btn" data-section="dashboard">Dashboard</button>
+    <button class="menu-btn" data-section="clients">Clientes</button>
+  </div>
 
-```
-<div id="userChip" class="user-chip">
-  <div id="profileNameChip">Carregando...</div>
-  <div id="profileOabChip" class="chip-sub">OAB não informada</div>
+  <div class="main">
+
+    <div class="topbar">
+      <h2 id="pageTitle">Dashboard</h2>
+      <div>
+        <button id="openConfigBtn">⚙️</button>
+        <button id="logoutBtn">Sair</button>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard" class="section">
+      <h3 id="profileDashboardName"></h3>
+      <p id="profileDashboardOab"></p>
+
+      <div class="card">
+        Clientes: <span id="dashClients">0</span>
+      </div>
+    </div>
+
+    <!-- CLIENTES -->
+    <div id="clients" class="section hidden">
+      <div id="clientsList"></div>
+    </div>
+
+  </div>
 </div>
 
-<button class="menu-btn active" data-section="dashboard">🏠 Dashboard</button>
-<button class="menu-btn" data-section="profile">🪪 Perfil</button>
-<button class="menu-btn" data-section="clients">👤 Clientes</button>
-<button class="menu-btn" data-section="processes">⚖️ Processos</button>
-<button class="menu-btn" data-section="deadlines">⏰ Prazos</button>
-<button class="menu-btn" data-section="payments">💰 Financeiro</button>
+<!-- CONFIG MODAL -->
+<div id="configModal" class="hidden" style="
+position:fixed;top:0;left:0;right:0;bottom:0;
+background:rgba(0,0,0,0.7);
+display:flex;align-items:center;justify-content:center;
+">
+  <div style="background:#1f2937;padding:20px;border-radius:10px;width:300px;">
+    <h3>Configurações</h3>
 
-<button id="logoutBtn" class="logout-btn">Sair</button>
-```
+    <input id="configName" placeholder="Nome" style="width:100%;margin:10px 0;">
+    <input id="configOab" placeholder="OAB" style="width:100%;margin:10px 0;">
 
-  </aside>
-
-  <!-- MAIN -->
-
-  <main class="main">
-
-```
-<header class="topbar">
-  <h2 id="sectionTitle">Dashboard</h2>
-  <p id="sectionSubtitle">Visão geral do sistema</p>
-</header>
-
-<!-- DASHBOARD -->
-<section id="dashboard" class="section active">
-
-  <div class="panel">
-    <h3 id="profileDashboardName">Advogado</h3>
-    <p id="profileDashboardOab" class="item-sub">OAB não informada</p>
+    <button id="saveConfigBtn">Salvar</button>
+    <button id="closeConfigBtn">Fechar</button>
   </div>
-
-  <div class="panel message">
-    Um prazo perdido pode custar um processo. Organize tudo em um só lugar.
-  </div>
-
-  <div class="grid">
-    <div class="card">
-      <span>Clientes</span>
-      <strong id="dashClients">0</strong>
-    </div>
-
-    <div class="card">
-      <span>Processos</span>
-      <strong id="dashProcesses">0</strong>
-    </div>
-
-    <div class="card">
-      <span>Prazos (7 dias)</span>
-      <strong id="dashDeadlines">0</strong>
-    </div>
-
-    <div class="card">
-      <span>A receber</span>
-      <strong id="dashPayments">R$ 0</strong>
-    </div>
-  </div>
-</section>
-
-<!-- PERFIL -->
-<section id="profile" class="section">
-  <div class="panel">
-    <h3>Perfil profissional</h3>
-
-    <div class="field">
-      <label>Nome completo</label>
-      <input id="profileFullName" placeholder="Ex: Vanderlei da Rosa"/>
-    </div>
-
-    <div class="field">
-      <label>OAB</label>
-      <input id="profileOab" placeholder="Ex: 12345/SC"/>
-    </div>
-
-    <button id="saveProfileBtn" class="btn-primary">Salvar</button>
-  </div>
-</section>
-
-<!-- CLIENTES -->
-<section id="clients" class="section">
-  <div class="panel">
-    <h3>Clientes</h3>
-    <button id="addClientBtn">+ Cliente</button>
-    <div id="clientsList"></div>
-  </div>
-</section>
-
-<!-- PROCESSOS -->
-<section id="processes" class="section">
-  <div class="panel">
-    <h3>Processos</h3>
-    <button id="addProcessBtn">+ Processo</button>
-    <div id="processList"></div>
-  </div>
-</section>
-
-<!-- PRAZOS -->
-<section id="deadlines" class="section">
-  <div class="panel">
-    <h3>Prazos</h3>
-    <button id="addDeadlineBtn">+ Prazo</button>
-    <div id="deadlineList"></div>
-  </div>
-</section>
-
-<!-- FINANCEIRO -->
-<section id="payments" class="section">
-  <div class="panel">
-    <h3>Financeiro</h3>
-    <button id="addPaymentBtn">+ Pagamento</button>
-    <div id="paymentList"></div>
-  </div>
-</section>
-```
-
-  </main>
 </div>
 
+<script type="module" src="app.js"></script>
 </body>
 </html>
