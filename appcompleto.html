@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LexControl</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body { font-family: Arial; padding:20px; }
+.hidden { display:none; }
+button { margin:5px; padding:10px; }
+input { margin:5px; padding:8px; width:100%; }
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="login">
+<h2>Login</h2>
+<input id="email" placeholder="Email">
+<input id="password" type="password" placeholder="Senha">
+<button onclick="login()">Entrar</button>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+
+<h2>Dashboard</h2>
+
+<button onclick="loadClients()">Clientes</button>
+<button onclick="loadProcesses()">Processos</button>
+<button onclick="loadDeadlines()">Prazos</button>
+<button onclick="loadPayments()">Financeiro</button>
+<button onclick="logout()">Sair</button>
+
+<div id="content"></div>
+
+</div>
+
+<script>
+
+const supabase = supabase.createClient(
+"https://gkwsagqmipsmqjtjqffe.supabase.co",
+"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdrd3NhZ3FtaXBzbXFqdGpxZmZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3ODAzODksImV4cCI6MjA5MDM1NjM4OX0.2saPkwADuOOxnMBhxTcu3adBpggTJ7cdQs83F18qXPU"
+);
+
+let user = null;
+
+async function login(){
+const { data, error } = await supabase.auth.signInWithPassword({
+email: document.getElementById('email').value,
+password: document.getElementById('password').value
+});
+
+if(error){ alert("Erro login"); return; }
+
+user = data.user;
+
+document.getElementById('login').classList.add('hidden');
+document.getElementById('app').classList.remove('hidden');
+}
+
+function logout(){
+location.reload();
+}
+
+//////////////////////////////////////////////////////
+// CLIENTES
+//////////////////////////////////////////////////////
+
+async function loadClients(){
+const { data } = await supabase.from('clients').select('*');
+
+let html = `<h3>Clientes</h3>
+<input id="nome" placeholder="Nome">
+<button onclick="addClient()">Adicionar</button>`;
+
+data.forEach(c=>{
+html += `<div>${c.nome}</div>`;
+});
+
+document.getElementById('content').innerHTML = html;
+}
+
+async function addClient(){
+await supabase.from('clients').insert([
+{ nome: document.getElementById('nome').value, user_id: user.id }
+]);
+loadClients();
+}
+
+//////////////////////////////////////////////////////
+// PROCESSOS
+//////////////////////////////////////////////////////
+
+async function loadProcesses(){
+const { data } = await supabase.from('processes').select('*');
+
+let html = `<h3>Processos</h3>
+<input id="numero" placeholder="Número">
+<button onclick="addProcess()">Adicionar</button>`;
+
+data.forEach(p=>{
+html += `<div>${p.numero}</div>`;
+});
+
+document.getElementById('content').innerHTML = html;
+}
+
+async function addProcess(){
+await supabase.from('processes').insert([
+{ numero: document.getElementById('numero').value, user_id: user.id }
+]);
+loadProcesses();
+}
+
+//////////////////////////////////////////////////////
+// PRAZOS
+//////////////////////////////////////////////////////
+
+async function loadDeadlines(){
+const { data } = await supabase.from('deadlines').select('*');
+
+let html = `<h3>Prazos</h3>
+<input id="desc" placeholder="Descrição">
+<button onclick="addDeadline()">Adicionar</button>`;
+
+data.forEach(d=>{
+html += `<div>${d.descricao}</div>`;
+});
+
+document.getElementById('content').innerHTML = html;
+}
+
+async function addDeadline(){
+await supabase.from('deadlines').insert([
+{ descricao: document.getElementById('desc').value, user_id: user.id }
+]);
+loadDeadlines();
+}
+
+//////////////////////////////////////////////////////
+// FINANCEIRO
+//////////////////////////////////////////////////////
+
+async function loadPayments(){
+const { data } = await supabase.from('payments').select('*');
+
+let html = `<h3>Financeiro</h3>
+<input id="valor" placeholder="Valor">
+<button onclick="addPayment()">Adicionar</button>`;
+
+data.forEach(p=>{
+html += `<div>R$ ${p.valor}</div>`;
+});
+
+document.getElementById('content').innerHTML = html;
+}
+
+async function addPayment(){
+await supabase.from('payments').insert([
+{ valor: document.getElementById('valor').value, user_id: user.id }
+]);
+loadPayments();
+}
+
+</script>
+
+</body>
+</html>
