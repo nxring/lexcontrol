@@ -1,6 +1,6 @@
 const sb = supabase.createClient(
-  "SUA_URL",
-  "SUA_ANON_KEY"
+  "https://gkwsagqmipsmqjtjqffe.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdrd3NhZ3FtaXBzbXFqdGpxZmZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3ODAzODksImV4cCI6MjA5MDM1NjM4OX0.2saPkwADuOOxnMBhxTcu3adBpggTJ7cdQs83F18qXPU"
 );
 
 let currentUser = null;
