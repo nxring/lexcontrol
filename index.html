@@ -1,273 +1,164 @@
 <!DOCTYPE html>
+
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>LexControl</title>
+
+  <link rel="stylesheet" href="styles.css" />
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css" />
+
+  <script type="module" src="config.js"></script>
+
+  <script type="module" src="app.js" defer></script>
+
 </head>
+
 <body>
-  <div id="loginScreen" class="login-screen">
-    <div class="login-wrap">
-      <section class="hero-card">
-        <div>
-          <div class="hero-badge">⚖️ LexControl • Gestão Jurídica</div>
-          <h1 class="hero-title">Seu escritório mais <span>organizado</span>, rápido e seguro.</h1>
-          <p class="hero-copy">
-            Controle clientes, processos, prazos e honorários em uma interface limpa,
-            profissional e pronta para uso real no celular e no computador.
-          </p>
 
-          <div class="hero-grid">
-            <div class="hero-mini">
-              <div class="hero-mini-label">Prazos próximos</div>
-              <div class="hero-mini-value">7 dias</div>
-            </div>
-            <div class="hero-mini">
-              <div class="hero-mini-label">Acesso</div>
-              <div class="hero-mini-value">Privado</div>
-            </div>
-          </div>
-        </div>
+<!-- LOGIN -->
 
-        <div class="hero-footer">
-          <div class="pill">Desktop + Mobile</div>
-          <div class="pill">Supabase Auth</div>
-          <div class="pill">UI moderna</div>
-        </div>
-      </section>
+<div id="loginScreen" class="login-screen">
+  <div class="login-box">
+    <h1>LexControl</h1>
+    <input id="email" placeholder="Email" />
+    <input id="password" type="password" placeholder="Senha" />
+    <button id="loginBtn">Entrar</button>
+  </div>
+</div>
 
-      <section class="login-card">
-        <div class="brand">
-          <div class="brand-mark">L</div>
-          <div>
-            <div class="brand-name">LexControl</div>
-          </div>
-        </div>
-        <p class="brand-sub">Acesso restrito para advogados e escritórios.</p>
+<!-- APP -->
 
-        <div class="field">
-          <label for="loginEmail">E-mail</label>
-          <input id="loginEmail" type="email" placeholder="Seu e-mail" />
-        </div>
+<div id="app" class="app hidden">
 
-        <div class="field">
-          <label for="loginPassword">Senha</label>
-          <input id="loginPassword" type="password" placeholder="Sua senha" />
-        </div>
+  <!-- SIDEBAR -->
 
-        <button class="btn btn-primary btn-block" id="loginButton">Entrar no sistema</button>
-        <div id="loginError" class="login-error"></div>
-      </section>
+  <aside class="sidebar">
+    <div class="logo">LexControl</div>
+
+```
+<div id="userChip" class="user-chip">
+  <div id="profileNameChip">Carregando...</div>
+  <div id="profileOabChip" class="chip-sub">OAB não informada</div>
+</div>
+
+<button class="menu-btn active" data-section="dashboard">🏠 Dashboard</button>
+<button class="menu-btn" data-section="profile">🪪 Perfil</button>
+<button class="menu-btn" data-section="clients">👤 Clientes</button>
+<button class="menu-btn" data-section="processes">⚖️ Processos</button>
+<button class="menu-btn" data-section="deadlines">⏰ Prazos</button>
+<button class="menu-btn" data-section="payments">💰 Financeiro</button>
+
+<button id="logoutBtn" class="logout-btn">Sair</button>
+```
+
+  </aside>
+
+  <!-- MAIN -->
+
+  <main class="main">
+
+```
+<header class="topbar">
+  <h2 id="sectionTitle">Dashboard</h2>
+  <p id="sectionSubtitle">Visão geral do sistema</p>
+</header>
+
+<!-- DASHBOARD -->
+<section id="dashboard" class="section active">
+
+  <div class="panel">
+    <h3 id="profileDashboardName">Advogado</h3>
+    <p id="profileDashboardOab" class="item-sub">OAB não informada</p>
+  </div>
+
+  <div class="panel message">
+    Um prazo perdido pode custar um processo. Organize tudo em um só lugar.
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <span>Clientes</span>
+      <strong id="dashClients">0</strong>
+    </div>
+
+    <div class="card">
+      <span>Processos</span>
+      <strong id="dashProcesses">0</strong>
+    </div>
+
+    <div class="card">
+      <span>Prazos (7 dias)</span>
+      <strong id="dashDeadlines">0</strong>
+    </div>
+
+    <div class="card">
+      <span>A receber</span>
+      <strong id="dashPayments">R$ 0</strong>
     </div>
   </div>
+</section>
 
-  <div id="app" class="hidden">
-    <aside class="sidebar">
-      <div class="sidebar-head">
-        <div class="brand">
-          <div class="brand-mark">L</div>
-          <div>
-            <div class="brand-name sidebar-brand">LexControl</div>
-            <div class="brand-sub sidebar-sub">Painel Jurídico</div>
-          </div>
-        </div>
-        <div id="userChip" class="user-chip">Carregando usuário...</div>
-      </div>
+<!-- PERFIL -->
+<section id="profile" class="section">
+  <div class="panel">
+    <h3>Perfil profissional</h3>
 
-      <div class="menu">
-        <button class="menu-btn active" data-section="dashboard">🏠 Home</button>
-        <button class="menu-btn" data-section="clients">👤 Clientes</button>
-        <button class="menu-btn" data-section="processes">⚖️ Processos</button>
-        <button class="menu-btn" data-section="deadlines">⏰ Prazos</button>
-        <button class="menu-btn" data-section="payments">💰 Financeiro</button>
-        <button id="logoutDesktop">🚪 Sair</button>
-      </div>
-    </aside>
+    <div class="field">
+      <label>Nome completo</label>
+      <input id="profileFullName" placeholder="Ex: Vanderlei da Rosa"/>
+    </div>
 
-    <main class="main">
-      <header class="topbar">
-        <div class="topbar-inner">
-          <div class="headline">
-            <h2 id="pageTitle">Dashboard</h2>
-            <p id="pageSubtitle">Visão rápida do seu controle jurídico.</p>
-          </div>
-          <button class="btn btn-danger" id="logoutTop">Sair</button>
-        </div>
-      </header>
+    <div class="field">
+      <label>OAB</label>
+      <input id="profileOab" placeholder="Ex: 12345/SC"/>
+    </div>
 
-      <div class="message">Um prazo perdido pode custar um processo. Organize tudo em um só lugar.</div>
-
-      <section id="dashboard" class="section active">
-        <div class="cards">
-          <div class="card">
-            <div class="card-label">Total de clientes</div>
-            <div class="card-value" id="dashClients">0</div>
-            <div class="card-trend">Base atual cadastrada</div>
-          </div>
-          <div class="card">
-            <div class="card-label">Processos ativos</div>
-            <div class="card-value" id="dashProcesses">0</div>
-            <div class="card-trend">Demandas em andamento</div>
-          </div>
-          <div class="card">
-            <div class="card-label">Prazos em 7 dias</div>
-            <div class="card-value" id="dashDeadlines">0</div>
-            <div class="card-trend">Atenção imediata</div>
-          </div>
-          <div class="card">
-            <div class="card-label">Valores pendentes</div>
-            <div class="card-value" id="dashPayments">R$ 0,00</div>
-            <div class="card-trend">Honorários a receber</div>
-          </div>
-        </div>
-
-        <div class="quick-actions">
-          <button class="quick-btn" data-go="clients" data-panel="clientPanel">
-            + Novo cliente
-            <span>Cadastre rapidamente um cliente</span>
-          </button>
-          <button class="quick-btn" data-go="processes" data-panel="processPanel">
-            + Novo processo
-            <span>Associe a um cliente</span>
-          </button>
-          <button class="quick-btn" data-go="deadlines" data-panel="deadlinePanel">
-            + Novo prazo
-            <span>Evite atrasos e perdas</span>
-          </button>
-          <button class="quick-btn" data-go="payments" data-panel="paymentPanel">
-            + Novo pagamento
-            <span>Controle seus honorários</span>
-          </button>
-        </div>
-
-        <div class="panel">
-          <h3>Alertas de prazo</h3>
-          <div id="dashboardAlert" class="empty">Sem alertas no momento.</div>
-        </div>
-      </section>
-
-      <section id="clients" class="section">
-        <div id="clientPanel" class="panel hidden">
-          <h3 id="clientPanelTitle">Novo cliente</h3>
-          <div class="field"><label>Nome</label><input id="clientNome" /></div>
-          <div class="field"><label>Telefone</label><input id="clientTelefone" /></div>
-          <div class="field"><label>E-mail</label><input id="clientEmail" type="email" /></div>
-          <div class="field"><label>Observações</label><textarea id="clientObs"></textarea></div>
-          <div class="toolbar">
-            <button class="btn btn-primary" id="saveClientBtn">Salvar</button>
-            <button class="btn btn-muted" data-close="clientPanel">Cancelar</button>
-          </div>
-        </div>
-
-        <div class="toolbar">
-          <button class="btn btn-primary" id="newClientBtn">+ Adicionar cliente</button>
-        </div>
-
-        <div id="clientsList" class="list"></div>
-      </section>
-
-      <section id="processes" class="section">
-        <div id="processPanel" class="panel hidden">
-          <h3 id="processPanelTitle">Novo processo</h3>
-          <div class="field">
-            <label>Cliente vinculado</label>
-            <select id="processClient"></select>
-          </div>
-          <div class="field"><label>Número do processo</label><input id="processNumero" /></div>
-          <div class="field"><label>Tipo</label><input id="processTipo" placeholder="Civil, Trabalhista..." /></div>
-          <div class="field">
-            <label>Status</label>
-            <select id="processStatus">
-              <option value="ativo">Ativo</option>
-              <option value="finalizado">Finalizado</option>
-            </select>
-          </div>
-          <div class="field"><label>Observações</label><textarea id="processObs"></textarea></div>
-          <div class="toolbar">
-            <button class="btn btn-primary" id="saveProcessBtn">Salvar</button>
-            <button class="btn btn-muted" data-close="processPanel">Cancelar</button>
-          </div>
-        </div>
-
-        <div class="toolbar">
-          <button class="btn btn-primary" id="newProcessBtn">+ Adicionar processo</button>
-          <button class="btn btn-muted" data-process-filter="all">Todos</button>
-          <button class="btn btn-success" data-process-filter="ativo">Ativos</button>
-          <button class="btn btn-danger" data-process-filter="finalizado">Finalizados</button>
-        </div>
-
-        <div id="processesList" class="list"></div>
-      </section>
-
-      <section id="deadlines" class="section">
-        <div id="deadlinePanel" class="panel hidden">
-          <h3 id="deadlinePanelTitle">Novo prazo</h3>
-          <div class="field">
-            <label>Processo vinculado</label>
-            <select id="deadlineProcess"></select>
-          </div>
-          <div class="field"><label>Descrição</label><input id="deadlineDescricao" /></div>
-          <div class="field"><label>Data</label><input id="deadlineData" type="date" /></div>
-          <div class="toolbar">
-            <button class="btn btn-primary" id="saveDeadlineBtn">Salvar</button>
-            <button class="btn btn-muted" data-close="deadlinePanel">Cancelar</button>
-          </div>
-        </div>
-
-        <div class="toolbar">
-          <button class="btn btn-primary" id="newDeadlineBtn">+ Adicionar prazo</button>
-        </div>
-
-        <div id="deadlinesList" class="list"></div>
-      </section>
-
-      <section id="payments" class="section">
-        <div id="paymentPanel" class="panel hidden">
-          <h3 id="paymentPanelTitle">Novo pagamento</h3>
-          <div class="field">
-            <label>Cliente</label>
-            <select id="paymentClient"></select>
-          </div>
-          <div class="field"><label>Valor</label><input id="paymentValor" type="number" step="0.01" min="0" /></div>
-          <div class="field">
-            <label>Status</label>
-            <select id="paymentStatus">
-              <option value="pendente">Pendente</option>
-              <option value="pago">Pago</option>
-            </select>
-          </div>
-          <div class="toolbar">
-            <button class="btn btn-primary" id="savePaymentBtn">Salvar</button>
-            <button class="btn btn-muted" data-close="paymentPanel">Cancelar</button>
-          </div>
-        </div>
-
-        <div class="toolbar">
-          <button class="btn btn-primary" id="newPaymentBtn">+ Adicionar pagamento</button>
-          <button class="btn btn-muted" data-payment-filter="all">Todos</button>
-          <button class="btn btn-warning" data-payment-filter="pendente">Pendentes</button>
-          <button class="btn btn-success" data-payment-filter="pago">Pagos</button>
-        </div>
-
-        <div id="paymentsList" class="list"></div>
-      </section>
-    </main>
-
-    <nav class="bottom-nav">
-      <button class="bottom-btn active" data-section="dashboard">🏠</button>
-      <button class="bottom-btn" data-section="clients">👤</button>
-      <button class="bottom-btn" data-section="processes">⚖️</button>
-      <button class="bottom-btn" data-section="deadlines">⏰</button>
-      <button class="bottom-btn" data-section="payments">💰</button>
-    </nav>
+    <button id="saveProfileBtn" class="btn-primary">Salvar</button>
   </div>
+</section>
 
-  <script type="module" src="./config.js"></script>
-  <script type="module" src="./app.js"></script>
+<!-- CLIENTES -->
+<section id="clients" class="section">
+  <div class="panel">
+    <h3>Clientes</h3>
+    <button id="addClientBtn">+ Cliente</button>
+    <div id="clientsList"></div>
+  </div>
+</section>
+
+<!-- PROCESSOS -->
+<section id="processes" class="section">
+  <div class="panel">
+    <h3>Processos</h3>
+    <button id="addProcessBtn">+ Processo</button>
+    <div id="processList"></div>
+  </div>
+</section>
+
+<!-- PRAZOS -->
+<section id="deadlines" class="section">
+  <div class="panel">
+    <h3>Prazos</h3>
+    <button id="addDeadlineBtn">+ Prazo</button>
+    <div id="deadlineList"></div>
+  </div>
+</section>
+
+<!-- FINANCEIRO -->
+<section id="payments" class="section">
+  <div class="panel">
+    <h3>Financeiro</h3>
+    <button id="addPaymentBtn">+ Pagamento</button>
+    <div id="paymentList"></div>
+  </div>
+</section>
+```
+
+  </main>
+</div>
+
 </body>
 </html>
